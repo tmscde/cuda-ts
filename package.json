@@ -1,0 +1,52 @@
+{
+  "name": "cuda",
+  "version": "0.1.0",
+  "description": "NVIDIA CUDA™ bindings for Node.js",
+  "author": "Tomas Kjellstrand",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/kjellstrand/cuda-ts/issues"
+  },
+  "homepage": "https://github.com/kjellstrand/cuda-ts#readme",
+  "keywords": [
+    "cuda",
+    "bindings",
+    "nodejs",
+    "addon",
+    "typescript"
+  ],
+  "main": "dist/index.js",
+  "typings": "dist/index.d.ts",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kjellstrand/cuda-ts.git"
+  },
+  "directories": {
+    "src": "src"
+  },
+  "jest": {
+    "testMatch": [
+      "**/__tests__/**/*.js"
+    ],
+    "verbose": true
+  },
+  "scripts": {
+    "build": "cross-env NODE_ENV=production webpack",
+    "test": "nvcc -cubin -o __tests__/data/test.cubin __tests__/data/test.cu && jest",
+    "watch-cu": "watch \"yarn cu\" ./kernels",
+    "watch-ts": "tsc --watch"
+  },
+  "dependencies": {
+    "bindings": "^1.5.0",
+    "node-addon-api": "^1.6.3"
+  },
+  "devDependencies": {
+    "@types/jest": "^24.0.13",
+    "@types/node": "^12.0.2",
+    "jest": "^24.8.0",
+    "mkdirp": "^0.5.1",
+    "prettier": "^1.17.0",
+    "typescript": "^3.4.5",
+    "watch": "^1.0.2"
+  }
+}

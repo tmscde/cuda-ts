@@ -1,0 +1,8 @@
+.vscode/ipch
+build
+node_modules/
+src/**/*.js
+test/**/*.js
+*.map
+*.node
+*.cubin

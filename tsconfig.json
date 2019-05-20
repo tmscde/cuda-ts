@@ -1,0 +1,18 @@
+{
+  "compilerOptions": {
+    "target": "es6",
+    "module": "commonjs",
+    "rootDir": "",
+    "noEmitOnError": false,
+    "noImplicitAny": true,
+    "removeComments": false,
+    "importHelpers": true,
+    "sourceMap": true,
+    "moduleResolution": "node",
+    "strictNullChecks": true,
+    "pretty": true,
+    "lib": ["es2016"],
+    "skipLibCheck": true
+  },
+  "exclude": ["node_modules"]
+}
