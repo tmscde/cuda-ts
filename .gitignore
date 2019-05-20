@@ -2,7 +2,7 @@
 build
 node_modules/
 src/**/*.js
-test/**/*.js
+__tests__/**/*.js
 *.map
 *.node
 *.cubin
