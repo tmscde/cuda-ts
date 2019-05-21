@@ -28,44 +28,39 @@ afterAll(() => {
   }
 });
 
+it("should compile cu to ptx", () => {
+  cuda.compileCuToPtx(`
+    extern "C" __global__ void add(float* __restrict__ input1, float* __restrict__ input2, float* __restrict__ output) {
+      output[blockIdx.x] = input1[blockIdx.x] + input2[blockIdx.x];
+    }
+  `);
+});
+
 it("should add two buffers", () => {
-  try {
-    const float32Len = 4;
-    const valueCount = 2;
-    const bufLen = float32Len * valueCount;
+  const float32Len = 4;
+  const valueCount = 2;
+  const bufLen = float32Len * valueCount;
 
-    const buf1 = new Float32Array([12, 1032]);
-    const buf2 = new Float32Array([3, 5]);
+  const buf1 = new Float32Array([12, 1032]);
+  const buf2 = new Float32Array([3, 5]);
 
-    // We allocate the first buffer ourselves (this should not be deallocated implicitly)
-    const gpuBuf1 = context.allocMem(bufLen);
-    gpuBuf1.copyHostToDevice(buf1.buffer);
+  // We allocate the first buffer ourselves (this should not be deallocated implicitly)
+  const gpuBuf1 = context.allocMem(bufLen);
+  gpuBuf1.copyHostToDevice(buf1.buffer);
 
-    const output = context.allocMem(bufLen);
-    const func = mod.getFunction("add");
+  const output = context.allocMem(bufLen);
+  const func = mod.getFunction("add");
 
-    console.log("Launch kernel");
+  context.launchKernel(func, [gpuBuf1, buf2], [output]);
 
-    context.launchKernel(func, [gpuBuf1, buf2], [output]);
+  const outBuffer = new ArrayBuffer(bufLen);
+  output.copyDeviceToHost(outBuffer);
 
-    // const outBuffer = new ArrayBuffer(bufLen);
-    // output.copyDeviceToHost(outBuffer);
+  // Free the allocated gpu buffer
+  gpuBuf1.free();
+  output.free();
 
-    // // Free the allocated gpu buffer
-    // gpuBuf1.free();
-    // output.free();
-
-    // const view = new DataView(outBuffer);
-    // expect(view.getFloat32(0)).toBe(15);
-    // expect(view.getFloat32(1)).toBe(1037);
-  } catch (error) {
-    console.log("AN ERROR OCCURED", error);
-  } finally {
-    if (mod) {
-      mod.unload();
-    }
-    if (context) {
-      context.destroy();
-    }
-  }
+  const view = new DataView(outBuffer);
+  expect(view.getFloat32(0, true)).toBe(15);
+  expect(view.getFloat32(4, true)).toBe(1037);
 });

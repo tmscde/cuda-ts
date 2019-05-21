@@ -10,6 +10,7 @@
         "src/native/module.cpp",
         "src/native/memory.cpp",
         "src/native/function.cpp",
+        "src/native/compiler.cpp",
       ],
       "include_dirs": [
         "<!@(node -p \"require('node-addon-api').include\")"
@@ -53,6 +54,7 @@
           },
           'libraries': [
             '-l<(cuda_root)/lib/<(arch)/cuda.lib',
+            '-l<(cuda_root)/lib/<(arch)/nvrtc.lib',
           ],
           "include_dirs": [
             "<(cuda_root)/include",

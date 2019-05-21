@@ -4,8 +4,10 @@
 #include "module.hpp"
 #include "memory.hpp"
 #include "function.hpp"
+#include "compiler.hpp"
 
-Napi::Object InitAll(Napi::Env env, Napi::Object exports) {
+Napi::Object InitAll(Napi::Env env, Napi::Object exports)
+{
   cuInit(0);
 
   Device::Init(env, exports);
@@ -13,6 +15,7 @@ Napi::Object InitAll(Napi::Env env, Napi::Object exports) {
   Module::Init(env, exports);
   Memory::Init(env, exports);
   Function::Init(env, exports);
+  InitCompiler(env, exports);
 
   return exports;
 }

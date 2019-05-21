@@ -47,8 +47,6 @@ Napi::Value Function::LaunchKernel(const Napi::CallbackInfo &info)
     input[i] = &Napi::ObjectWrap<Memory>::Unwrap(array.Get(i).As<Napi::Object>())->m_ptr;
   }
 
-  fprintf(stdout, "Launching kernel.\n");
-
   // Synchronization is not needed as we're using stream 0
   if (!validate(cuLaunchKernel(m_function,
                                2, 1, 1, // Grid dimensions (block count)
@@ -62,8 +60,6 @@ Napi::Value Function::LaunchKernel(const Napi::CallbackInfo &info)
   {
     return env.Undefined();
   }
-
-  fprintf(stdout, "Launched kernel.\n");
 
   return env.Undefined();
 }

@@ -25,6 +25,7 @@ export interface GpuBuffer {
 export interface Context {
   allocMem(byteLength: number): GpuBuffer;
   loadModule(filename: string): Module;
+  loadModuleFromCu(cu: string): Module;
   launchKernel(func: Function, input: (Float32Array | GpuBuffer)[], output: (number | GpuBuffer)[]): Float32Array[];
   destroy(): void;
 }
@@ -34,7 +35,6 @@ class FunctionImpl implements Function {
 
   launchKernel(buffers: GpuBuffer[]): void {
     const gpuMem = buffers.map(x => (x as GpuBufferImpl).mem);
-    console.log("RINNING...");
     return this.func.launchKernel(gpuMem);
   }
 }
@@ -86,6 +86,10 @@ class ContextImpl implements Context {
     return new ModuleImpl(this.context.moduleLoad(filename));
   }
 
+  loadModuleFromCu(filename: string) {
+    return new ModuleImpl(this.context.moduleLoad(filename));
+  }
+
   launchKernel(func: Function, input: (Float32Array | GpuBuffer)[], output: (number | GpuBuffer)[]): Float32Array[] {
     const buffersToFree: GpuBuffer[] = [];
     const inputBuffers = input.map(inputBuffer => {
@@ -110,8 +114,6 @@ class ContextImpl implements Context {
     });
 
     func.launchKernel([...inputBuffers, ...outputBuffers]);
-
-    console.log("ASASDASDASD");
 
     // Copy output buffers
     const results = outputBuffers.map(buffer => {
@@ -141,4 +143,8 @@ export function getDevices(): Device[] {
 
 export function createContext(device: Device): Context {
   return new ContextImpl(device);
+}
+
+export function compileCuToPtx(cu: string) {
+  return cuda.compileCuToPtx(cu);
 }
