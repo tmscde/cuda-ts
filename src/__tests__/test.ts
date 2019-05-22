@@ -41,22 +41,32 @@ it("should add two buffers", () => {
   const valueCount = 2;
   const bufLen = float32Len * valueCount;
 
+  // Allocate two buffers that will be added together by the kernel on the GPU
   const buf1 = new Float32Array([12, 1032]);
   const buf2 = new Float32Array([3, 5]);
 
-  // We allocate the first buffer ourselves (this should not be deallocated implicitly)
+  // We allocate the first buffer ourselves (we need to free the buffer once we're done)
   const gpuBuf1 = context.allocMem(bufLen);
+
+  // Copy the buffer contents to GPU memory
   gpuBuf1.copyHostToDevice(buf1.buffer);
 
+  // Allocate GPU memory for the result
   const output = context.allocMem(bufLen);
+
+  // Get the function kernel
   const func = mod.getFunction("add");
 
+  // Launch the kernel on the GPU, buf2 is managed (allocated/deallocated) by cuda-ts
   context.launchKernel(func, [gpuBuf1, buf2], [output]);
 
+  // Allocate host space for the result
   const outBuffer = new ArrayBuffer(bufLen);
+
+  // Copy the results GPU buffer to host memory
   output.copyDeviceToHost(outBuffer);
 
-  // Free the allocated gpu buffer
+  // Free the allocated gpu buffers
   gpuBuf1.free();
   output.free();
 
