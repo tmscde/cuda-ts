@@ -1,8 +1,8 @@
 {
   "compilerOptions": {
+    "outDir": "dist",
     "target": "es6",
     "module": "commonjs",
-    "rootDir": "",
     "noEmitOnError": false,
     "noImplicitAny": true,
     "removeComments": false,
@@ -12,7 +12,8 @@
     "strictNullChecks": true,
     "pretty": true,
     "lib": ["es2016"],
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "declaration": true
   },
-  "exclude": ["node_modules"]
+  "include": ["src/**/*.ts", "src/__tests__"]
 }

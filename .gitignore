@@ -1,8 +1,10 @@
 .vscode/ipch
 build
+dist
 node_modules/
 src/**/*.js
 __tests__/**/*.js
 *.map
 *.node
 *.cubin
+yarn-error.log

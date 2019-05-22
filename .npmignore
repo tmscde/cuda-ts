@@ -1,0 +1,9 @@
+src/**/*.ts(?)
+src/**/*.map(?)
+.vscode
+tsconfig.json
+yarn-error.log
+build
+__tests__
+src/**/*.ts
+.prettierrc

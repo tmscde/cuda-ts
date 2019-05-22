@@ -1,4 +1,4 @@
-import * as cuda from "../src/cuda";
+import * as cuda from "..";
 
 let context: cuda.Context;
 let mod: cuda.Module;
@@ -16,7 +16,7 @@ beforeAll(() => {
   context = cuda.createContext(device);
 
   // Load the module used in subsequent tests
-  mod = context.loadModule("__tests__/data/test.cubin");
+  mod = context.loadModule("dist/__tests__/test.cubin");
 });
 
 afterAll(() => {

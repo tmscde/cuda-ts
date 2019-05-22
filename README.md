@@ -1,2 +1,3 @@
 # cuda-ts
-NVIDIA CUDA bindings exposed in TypeScript.
+
+NVIDIA CUDA™ bindings exposed in TypeScript.
