@@ -31,7 +31,7 @@ export interface GpuBuffer {
 export interface Context {
   allocMem(byteLength: number): GpuBuffer;
   loadModule(filename: string): Module;
-  loadModuleFromCu(cu: string): Module;
+  loadModuleData(data: ArrayBuffer): Module;
   /**
    * Invokes the kernel {@param func} on a {@param gridDim.x} x {@param gridDim.y} x {@param gridDim.z} grid of blocks. Each block contains {@param blockDim.x} x {@param blockDim.y} x {@param blockDim.z} threads.
    * @param {KernelFunc} func The kernel function
@@ -107,8 +107,8 @@ class ContextImpl implements Context {
     return new ModuleImpl(this.context.moduleLoad(filename));
   }
 
-  loadModuleFromCu(filename: string) {
-    return new ModuleImpl(this.context.moduleLoad(filename));
+  loadModuleData(data: ArrayBuffer) {
+    return new ModuleImpl(this.context.moduleLoadData(data));
   }
 
   launchKernel(
@@ -172,6 +172,6 @@ export function createContext(device: Device): Context {
   return new ContextImpl(device);
 }
 
-export function compileCuToPtx(cu: string) {
+export function compileCuToPtx(cu: string): ArrayBuffer {
   return cuda.compileCuToPtx(cu);
 }

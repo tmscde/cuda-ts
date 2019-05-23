@@ -90,12 +90,7 @@ Napi::Value CompileCuToPtx(const Napi::CallbackInfo &info)
     return env.Undefined();
   }
 
-  // *ptxResult = ptx;
-  // *ptxResultSize = ptxSize;
-
-  // if (requiresCGheaders) free(compileParams[0]);
-
-  return env.Undefined();
+  return Napi::ArrayBuffer::New(env, ptx, ptxSize);
 }
 
 Napi::Object InitCompiler(Napi::Env env, Napi::Object exports)

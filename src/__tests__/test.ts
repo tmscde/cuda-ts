@@ -16,7 +16,14 @@ beforeAll(() => {
   context = cuda.createContext(device);
 
   // Load the module used in subsequent tests
-  mod = context.loadModule("dist/__tests__/test.cubin");
+  // mod = context.loadModule("dist/__tests__/test.cubin");
+  const data = cuda.compileCuToPtx(`
+    extern "C" __global__ void add(float* __restrict__ input1, float* __restrict__ input2, float* __restrict__ output) {
+      output[blockIdx.x] = input1[blockIdx.x] + input2[blockIdx.x];
+    }
+  `);
+
+  mod = context.loadModuleData(data);
 });
 
 afterAll(() => {

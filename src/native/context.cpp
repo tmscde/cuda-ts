@@ -12,6 +12,7 @@ Napi::Object Context::Init(Napi::Env env, Napi::Object exports)
 
   Napi::Function func = DefineClass(env, "Context", {
                                                         InstanceMethod("moduleLoad", &Context::ModuleLoad),
+                                                        InstanceMethod("moduleLoadData", &Context::ModuleLoadData),
                                                         InstanceMethod("destroy", &Context::Destroy),
                                                         InstanceMethod("allocMem", &Context::AllocMem),
                                                     });
@@ -76,6 +77,28 @@ Napi::Value Context::ModuleLoad(const Napi::CallbackInfo &info)
   const std::string filename = arg0.Utf8Value();
 
   if (!validate(cuModuleLoad(&module->m_module, filename.data()), env))
+  {
+    return env.Undefined();
+  }
+
+  return obj;
+}
+
+Napi::Value Context::ModuleLoadData(const Napi::CallbackInfo &info)
+{
+  Napi::Env env = info.Env();
+  if (info.Length() != 1)
+  {
+    Napi::TypeError::New(env, "Wrong number of arguments").ThrowAsJavaScriptException();
+    return env.Null();
+  }
+
+  Napi::ArrayBuffer arg0 = info[0].As<Napi::ArrayBuffer>();
+
+  Napi::Object obj = Module::New();
+  Module *module = Napi::ObjectWrap<Module>::Unwrap(obj);
+
+  if (!validate(cuModuleLoadData(&module->m_module, arg0.Data()), env))
   {
     return env.Undefined();
   }
