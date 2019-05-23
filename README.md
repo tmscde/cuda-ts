@@ -48,7 +48,13 @@ const output = context.allocMem(bufLen);
 const func = mod.getFunction("add");
 
 // Launch the kernel on the GPU, buf2 is managed (allocated/deallocated) by cuda-ts
-context.launchKernel(func, [gpuBuf1, buf2], [output]);
+context.launchKernel(
+  func, // The kernel function
+  [gpuBuf1, buf2], // The input buffers
+  [output], // The output buffer
+  { x: output.length / float32Len, y: 1, z: 1 }, // Dimensions of grid in blocks
+  { x: 1, y: 1, z: 1 }, // Dimensions of each thread block
+);
 
 // Allocate host space for the result
 const outBuffer = new ArrayBuffer(bufLen);
