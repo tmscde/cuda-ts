@@ -1,17 +1,23 @@
 const cuda = require("bindings")("cuda");
 
+export interface Dimensions {
+  x: number;
+  y: number;
+  z: number;
+}
+
 export interface Device {
   getName(): string;
   getTotalMem(): number;
   getComputeCapability(): string;
 }
 
-export interface Function {
-  launchKernel(buffers: GpuBuffer[]): void;
+export interface KernelFunc {
+  launchKernel(buffers: GpuBuffer[], gridDim: Dimensions, blockDim: Dimensions): void;
 }
 
 export interface Module {
-  getFunction(name: string): Function;
+  getFunction(name: string): KernelFunc;
   unload(): void;
 }
 
@@ -26,23 +32,38 @@ export interface Context {
   allocMem(byteLength: number): GpuBuffer;
   loadModule(filename: string): Module;
   loadModuleFromCu(cu: string): Module;
-  launchKernel(func: Function, input: (Float32Array | GpuBuffer)[], output: (number | GpuBuffer)[]): Float32Array[];
+  /**
+   * Invokes the kernel {@param func} on a {@param gridDim.x} x {@param gridDim.y} x {@param gridDim.z} grid of blocks. Each block contains {@param blockDim.x} x {@param blockDim.y} x {@param blockDim.z} threads.
+   * @param {KernelFunc} func The kernel function
+   * @param {(number | Float32Array | GpuBuffer)[]} input Buffers to be read by the kernel function
+   * @param {(number | GpuBuffer)[]} Buffers to be written to by the kernel function
+   * @param {Dimensions} gridDim Size of the grid in blocks
+   * @param {Dimensions} blockDim Dimensions of each thread block
+   * @return {Float32Array[]} The contents of the {@param input} buffers in host memory
+   */
+  launchKernel(
+    func: KernelFunc,
+    input: (Float32Array | GpuBuffer)[],
+    output: (number | GpuBuffer)[],
+    gridDim: Dimensions,
+    blockDim: Dimensions,
+  ): Float32Array[];
   destroy(): void;
 }
 
-class FunctionImpl implements Function {
+class FunctionImpl implements KernelFunc {
   constructor(private func: any) {}
 
-  launchKernel(buffers: GpuBuffer[]): void {
+  launchKernel(buffers: GpuBuffer[], gridDim: Dimensions, blockDim: Dimensions): void {
     const gpuMem = buffers.map(x => (x as GpuBufferImpl).mem);
-    return this.func.launchKernel(gpuMem);
+    return this.func.launchKernel(gpuMem, gridDim.x, gridDim.y, gridDim.z, blockDim.x, blockDim.y, blockDim.z);
   }
 }
 
 class ModuleImpl {
   constructor(private mod: any) {}
 
-  getFunction(name: string): Function {
+  getFunction(name: string): KernelFunc {
     return new FunctionImpl(this.mod.getFunction(name));
   }
 
@@ -90,7 +111,13 @@ class ContextImpl implements Context {
     return new ModuleImpl(this.context.moduleLoad(filename));
   }
 
-  launchKernel(func: Function, input: (Float32Array | GpuBuffer)[], output: (number | GpuBuffer)[]): Float32Array[] {
+  launchKernel(
+    func: KernelFunc,
+    input: (Float32Array | GpuBuffer)[],
+    output: (number | GpuBuffer)[],
+    gridDim: Dimensions,
+    blockDim: Dimensions,
+  ): Float32Array[] {
     const buffersToFree: GpuBuffer[] = [];
     const inputBuffers = input.map(inputBuffer => {
       if (!isFloat32Array(inputBuffer)) {
@@ -113,7 +140,7 @@ class ContextImpl implements Context {
       return gpuBuffer;
     });
 
-    func.launchKernel([...inputBuffers, ...outputBuffers]);
+    func.launchKernel([...inputBuffers, ...outputBuffers], gridDim, blockDim);
 
     // Copy output buffers
     const results = outputBuffers.map(buffer => {

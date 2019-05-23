@@ -33,7 +33,7 @@ Napi::Value Function::LaunchKernel(const Napi::CallbackInfo &info)
 {
   Napi::Env env = info.Env();
 
-  if (info.Length() != 1)
+  if (info.Length() != 7)
   {
     Napi::TypeError::New(env, "Wrong number of arguments").ThrowAsJavaScriptException();
     return env.Null();
@@ -49,10 +49,14 @@ Napi::Value Function::LaunchKernel(const Napi::CallbackInfo &info)
 
   // Synchronization is not needed as we're using stream 0
   if (!validate(cuLaunchKernel(m_function,
-                               2, 1, 1, // Grid dimensions (block count)
-                               1, 1, 1, // Block dimensions (thread count)
-                               0,       // Shared mem bytes
-                               0,       // Stream
+                               info[1].As<Napi::Number>().Int32Value(), // Grid dimensions (block count)
+                               info[2].As<Napi::Number>().Int32Value(),
+                               info[3].As<Napi::Number>().Int32Value(),
+                               info[4].As<Napi::Number>().Int32Value(), // Block dimensions (thread count)
+                               info[5].As<Napi::Number>().Int32Value(),
+                               info[6].As<Napi::Number>().Int32Value(),
+                               0, // Shared mem bytes
+                               0, // Stream
                                (void **)input.data(),
                                NULL // Extra
                                ),
