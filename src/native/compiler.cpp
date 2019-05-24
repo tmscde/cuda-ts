@@ -20,6 +20,11 @@ extern inline bool __validateNvrtcResult(nvrtcResult result, const char *file, c
   return true;
 }
 
+void freePtx(Napi::Env env, void *ptr)
+{
+  free(ptr);
+}
+
 Napi::Value CompileCuToPtx(const Napi::CallbackInfo &info)
 {
   Napi::Env env = info.Env();
@@ -30,58 +35,46 @@ Napi::Value CompileCuToPtx(const Napi::CallbackInfo &info)
     return env.Undefined();
   }
 
-  // Get the cu-code
-  Napi::String arg0 = info[0].As<Napi::String>();
-
-  // Null terminated cu-code string
-  const char *cuCode = arg0.Utf8Value().c_str();
-
+  std::string cuCode = info[0].As<Napi::String>().Utf8Value();
   nvrtcProgram prog;
 
-  if (!validateNvrtc(nvrtcCreateProgram(&prog, cuCode, "program.cu", 0, NULL, NULL), env))
+  if (!validateNvrtc(nvrtcCreateProgram(&prog, cuCode.c_str(), "program.cu", 0, NULL, NULL), env))
   {
     return env.Undefined();
   }
 
   int numCompileOptions = 0;
-  char *compileParams[1];
+  char *compileParams[1] = {NULL};
 
   nvrtcResult compilerRes = nvrtcCompileProgram(prog, numCompileOptions, compileParams);
-
-  // dump log
-  size_t logSize;
-  if (!validateNvrtc(nvrtcGetProgramLogSize(prog, &logSize), env))
+  if (compilerRes != NVRTC_SUCCESS)
   {
-    return env.Undefined();
-  }
-
-  char *log = reinterpret_cast<char *>(malloc(sizeof(char) * logSize + 1));
-  if (!validateNvrtc(nvrtcGetProgramLog(prog, log), env))
-  {
-    return env.Undefined();
-  }
-
-  log[logSize] = '\x0';
-
-  if (strlen(log) >= 2)
-  {
-    fprintf(stdout, "\n compilation log ---\n%s\n end log ---\n", log);
-  }
-
-  if (!validateNvrtc(compilerRes, env))
-  {
+    size_t logSize;
+    if (nvrtcGetProgramLogSize(prog, &logSize) == NVRTC_SUCCESS)
+    {
+      char *log = new char[logSize];
+      if (nvrtcGetProgramLog(prog, log) == NVRTC_SUCCESS)
+      {
+        fprintf(stdout, "\n compilation log ---\n%s\n end log ---\n", log);
+      }
+      delete[] log;
+    }
+    nvrtcDestroyProgram(&prog);
+    validateNvrtc(compilerRes, env);
     return env.Undefined();
   }
 
   size_t ptxSize;
   if (!validateNvrtc(nvrtcGetPTXSize(prog, &ptxSize), env))
   {
+    nvrtcDestroyProgram(&prog);
     return env.Undefined();
   }
 
   char *ptx = reinterpret_cast<char *>(malloc(sizeof(char) * ptxSize));
   if (!validateNvrtc(nvrtcGetPTX(prog, ptx), env))
   {
+    nvrtcDestroyProgram(&prog);
     return env.Undefined();
   }
 
@@ -90,7 +83,9 @@ Napi::Value CompileCuToPtx(const Napi::CallbackInfo &info)
     return env.Undefined();
   }
 
-  return Napi::ArrayBuffer::New(env, ptx, ptxSize);
+  Napi::ArrayBuffer buffer = Napi::ArrayBuffer::New(env, ptx, ptxSize, &freePtx);
+
+  return buffer;
 }
 
 Napi::Object InitCompiler(Napi::Env env, Napi::Object exports)

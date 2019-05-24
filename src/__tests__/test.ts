@@ -18,8 +18,12 @@ beforeAll(() => {
   // Load the module used in subsequent tests
   // mod = context.loadModule("dist/__tests__/test.cubin");
   const data = cuda.compileCuToPtx(`
+    __device__ __forceinline__ float add(float* input1, float* input2) {
+      return input1[blockIdx.x] + input2[blockIdx.x];
+    }
+
     extern "C" __global__ void add(float* __restrict__ input1, float* __restrict__ input2, float* __restrict__ output) {
-      output[blockIdx.x] = input1[blockIdx.x] + input2[blockIdx.x];
+      output[blockIdx.x] = add(input1, input2);
     }
   `);
 

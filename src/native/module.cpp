@@ -47,7 +47,7 @@ Napi::Value Module::GetFunction(const Napi::CallbackInfo &info)
 
   const std::string funcName = arg0.Utf8Value();
 
-  if (!validate(cuModuleGetFunction(&function->m_function, m_module, funcName.data()), env))
+  if (!validate(cuModuleGetFunction(&function->m_function, m_module, funcName.c_str()), env))
   {
     return env.Undefined();
   }

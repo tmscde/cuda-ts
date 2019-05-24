@@ -76,7 +76,7 @@ Napi::Value Context::ModuleLoad(const Napi::CallbackInfo &info)
 
   const std::string filename = arg0.Utf8Value();
 
-  if (!validate(cuModuleLoad(&module->m_module, filename.data()), env))
+  if (!validate(cuModuleLoad(&module->m_module, filename.c_str()), env))
   {
     return env.Undefined();
   }
