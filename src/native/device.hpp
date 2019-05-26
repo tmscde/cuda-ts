@@ -19,6 +19,7 @@ class Device : public Napi::ObjectWrap<Device> {
   Napi::Value GetName(const Napi::CallbackInfo& info);
   Napi::Value GetTotalMem(const Napi::CallbackInfo& info);
   Napi::Value GetComputeCapability(const Napi::CallbackInfo& info);
+  Napi::Value GetAttribute(const Napi::CallbackInfo& info);
 };
 
 #endif

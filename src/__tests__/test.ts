@@ -2,10 +2,11 @@ import * as cuda from "..";
 
 let context: cuda.Context;
 let mod: cuda.Module;
+let device: cuda.Device;
 
 beforeAll(() => {
   // Use the first available device (might fail depending on environment)
-  const device = cuda.getDevices()[0];
+  device = cuda.getDevices()[0];
 
   console.log("Running tests using device: ", {
     name: device.getName(),
@@ -45,6 +46,11 @@ it("should compile cu to ptx", () => {
       output[blockIdx.x] = input1[blockIdx.x] + input2[blockIdx.x];
     }
   `);
+});
+
+it("should return attributes", () => {
+  const smCount = device.getAttribute(cuda.CUdevice_attribute_enum.CU_DEVICE_ATTRIBUTE_MULTIPROCESSOR_COUNT);
+  expect(smCount).toBeGreaterThan(0);
 });
 
 it("should add two buffers", () => {

@@ -6,7 +6,6 @@
     "noEmitOnError": false,
     "noImplicitAny": true,
     "removeComments": false,
-    "importHelpers": true,
     "sourceMap": true,
     "moduleResolution": "node",
     "strictNullChecks": true,

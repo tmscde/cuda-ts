@@ -1,3 +1,6 @@
+export * from "./enums";
+import { CUdevice_attribute_enum } from "./enums";
+
 const cuda = require("bindings")("cuda");
 
 export interface Dimensions {
@@ -10,6 +13,7 @@ export interface Device {
   getName(): string;
   getTotalMem(): number;
   getComputeCapability(): string;
+  getAttribute(attribute: CUdevice_attribute_enum): number;
 }
 
 export interface KernelFunc {
