@@ -77,8 +77,7 @@ it("should add two buffers", () => {
   // Launch the kernel on the GPU, buf2 is managed (allocated/deallocated) by cuda-ts
   context.launchKernel(
     func, // The kernel function
-    [gpuBuf1, buf2], // The input buffers
-    [output], // The output buffer
+    [gpuBuf1, buf2, output], // The data buffers
     { x: output.length / float32Len, y: 1, z: 1 }, // Dimensions of grid in blocks
     { x: 1, y: 1, z: 1 }, // Dimensions of each thread block
   );

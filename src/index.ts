@@ -45,13 +45,7 @@ export interface Context {
    * @param {Dimensions} blockDim Dimensions of each thread block
    * @return {Float32Array[]} The contents of the {@param input} buffers in host memory
    */
-  launchKernel(
-    func: KernelFunc,
-    input: (Float32Array | GpuBuffer)[],
-    output: (number | GpuBuffer)[],
-    gridDim: Dimensions,
-    blockDim: Dimensions,
-  ): Float32Array[];
+  launchKernel(func: KernelFunc, data: (Float32Array | GpuBuffer)[], gridDim: Dimensions, blockDim: Dimensions): void;
   destroy(): void;
 }
 
@@ -115,49 +109,23 @@ class ContextImpl implements Context {
     return new ModuleImpl(this.context.moduleLoadData(data));
   }
 
-  launchKernel(
-    func: KernelFunc,
-    input: (Float32Array | GpuBuffer)[],
-    output: (number | GpuBuffer)[],
-    gridDim: Dimensions,
-    blockDim: Dimensions,
-  ): Float32Array[] {
+  launchKernel(func: KernelFunc, data: (Float32Array | GpuBuffer)[], gridDim: Dimensions, blockDim: Dimensions): void {
     const buffersToFree: GpuBuffer[] = [];
-    const inputBuffers = input.map(inputBuffer => {
-      if (!isFloat32Array(inputBuffer)) {
-        return inputBuffer;
-      }
-
-      const gpuBuffer = this.allocMem(inputBuffer.byteLength);
-      gpuBuffer.copyHostToDevice(inputBuffer.buffer);
-      buffersToFree.push(gpuBuffer);
-      return gpuBuffer;
-    });
-
-    const outputBuffers = output.map(buffer => {
-      if (!isNumber(buffer)) {
+    const buffers = data.map(buffer => {
+      if (!isFloat32Array(buffer)) {
         return buffer;
       }
-
-      const gpuBuffer = this.allocMem(buffer);
+      const gpuBuffer = this.allocMem(buffer.byteLength);
+      gpuBuffer.copyHostToDevice(buffer.buffer);
       buffersToFree.push(gpuBuffer);
       return gpuBuffer;
     });
 
-    func.launchKernel([...inputBuffers, ...outputBuffers], gridDim, blockDim);
-
-    // Copy output buffers
-    const results = outputBuffers.map(buffer => {
-      const hostBuffer = new ArrayBuffer(buffer.length);
-      buffer.copyDeviceToHost(hostBuffer);
-      return new Float32Array(hostBuffer);
-    });
+    func.launchKernel(buffers, gridDim, blockDim);
 
     while (buffersToFree.length > 0) {
       buffersToFree.pop()!.free();
     }
-
-    return results;
   }
 
   destroy() {
