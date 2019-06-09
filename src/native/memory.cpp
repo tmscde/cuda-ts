@@ -1,5 +1,6 @@
 #include "memory.hpp"
 #include "shared.hpp"
+#include "stream.hpp"
 
 Napi::FunctionReference Memory::constructor;
 
@@ -46,7 +47,7 @@ Napi::Value Memory::CopyHostToDevice(const Napi::CallbackInfo &info)
 {
   Napi::Env env = info.Env();
 
-  if (info.Length() != 1)
+  if (info.Length() != 2)
   {
     Napi::TypeError::New(env, "Wrong number of arguments").ThrowAsJavaScriptException();
     return env.Null();
@@ -58,9 +59,23 @@ Napi::Value Memory::CopyHostToDevice(const Napi::CallbackInfo &info)
     return env.Null();
   }
 
+  CUstream stream = 0;
+  if (info[1].IsNumber())
+  {
+    if (info[1].As<Napi::Number>().Int32Value() != 0)
+    {
+      Napi::TypeError::New(env, "Invalid stream").ThrowAsJavaScriptException();
+      return env.Null();
+    }
+  }
+  else
+  {
+    stream = (Napi::ObjectWrap<Stream>::Unwrap(info[7].As<Napi::Object>()))->m_stream;
+  }
+
   Napi::ArrayBuffer buf = info[0].As<Napi::ArrayBuffer>();
 
-  if (!validate(cuMemcpyHtoD(m_ptr, buf.Data(), buf.ByteLength()), env))
+  if (!validate(cuMemcpyHtoDAsync(m_ptr, buf.Data(), buf.ByteLength(), stream), env))
   {
     return env.Undefined();
   }
@@ -72,7 +87,7 @@ Napi::Value Memory::CopyDeviceToHost(const Napi::CallbackInfo &info)
 {
   Napi::Env env = info.Env();
 
-  if (info.Length() != 1)
+  if (info.Length() != 2)
   {
     Napi::TypeError::New(env, "Wrong number of arguments").ThrowAsJavaScriptException();
     return env.Null();
@@ -84,9 +99,23 @@ Napi::Value Memory::CopyDeviceToHost(const Napi::CallbackInfo &info)
     return env.Null();
   }
 
+  CUstream stream = 0;
+  if (info[1].IsNumber())
+  {
+    if (info[1].As<Napi::Number>().Int32Value() != 0)
+    {
+      Napi::TypeError::New(env, "Invalid stream").ThrowAsJavaScriptException();
+      return env.Null();
+    }
+  }
+  else
+  {
+    stream = (Napi::ObjectWrap<Stream>::Unwrap(info[7].As<Napi::Object>()))->m_stream;
+  }
+
   Napi::ArrayBuffer buf = info[0].As<Napi::ArrayBuffer>();
 
-  if (!validate(cuMemcpyDtoH(buf.Data(), m_ptr, buf.ByteLength()), env))
+  if (!validate(cuMemcpyDtoHAsync(buf.Data(), m_ptr, buf.ByteLength(), stream), env))
   {
     return env.Undefined();
   }

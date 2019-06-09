@@ -35,8 +35,8 @@ export interface Module {
 }
 
 export interface GpuBuffer {
-  copyDeviceToHost(buffer: ArrayBuffer): void;
-  copyHostToDevice(buffer: ArrayBuffer): void;
+  copyDeviceToHost(buffer: ArrayBuffer, stream: Stream | 0): void;
+  copyHostToDevice(buffer: ArrayBuffer, stream: Stream | 0): void;
   free(): void;
 }
 

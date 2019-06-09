@@ -34,17 +34,18 @@ const bufLen = float32Len * valueCount;
 // Allocate two buffers that will be added together by the kernel on the GPU
 const buf1 = new Float32Array([12, 1032]);
 const gpuBuf1 = context.allocMem(bufLen);
-gpuBuf1.copyHostToDevice(buf1.buffer);
-
 const buf2 = new Float32Array([3, 5]);
 const gpuBuf2 = context.allocMem(bufLen);
-gpuBuf2.copyHostToDevice(buf2.buffer);
 
 // Allocate GPU memory for the result
 const output = context.allocMem(bufLen);
 
 // Get the function kernel
 const func = mod.getFunction("add");
+
+// Copy the host buffers to the GPU (run on synchronous default stream 0)
+gpuBuf1.copyHostToDevice(buf1.buffer, 0);
+gpuBuf2.copyHostToDevice(buf2.buffer, 0);
 
 // Launch the kernel on the GPU, buf2 is managed (allocated/deallocated) by cuda-ts
 func.launchKernel(
@@ -57,8 +58,8 @@ func.launchKernel(
 // Allocate host space for the result
 const outBuffer = new ArrayBuffer(bufLen);
 
-// Copy the results GPU buffer to host memory
-output.copyDeviceToHost(outBuffer);
+// Copy the results GPU buffer to host memory (run on synchronous default stream 0)
+output.copyDeviceToHost(outBuffer, 0);
 
 // Free the allocated gpu buffers
 gpuBuf1.free();
