@@ -9,6 +9,7 @@ class Stream : public Napi::ObjectWrap<Stream>
 public:
   static Napi::Object Init(Napi::Env env, Napi::Object exports);
   static Napi::Value CreateStream(const Napi::CallbackInfo &info);
+  static CUstream GetStream(Napi::Env env, Napi::Value value);
 
   Stream(const Napi::CallbackInfo &info);
 

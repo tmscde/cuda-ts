@@ -59,19 +59,7 @@ Napi::Value Memory::CopyHostToDevice(const Napi::CallbackInfo &info)
     return env.Null();
   }
 
-  CUstream stream = 0;
-  if (info[1].IsNumber())
-  {
-    if (info[1].As<Napi::Number>().Int32Value() != 0)
-    {
-      Napi::TypeError::New(env, "Invalid stream").ThrowAsJavaScriptException();
-      return env.Null();
-    }
-  }
-  else
-  {
-    stream = (Napi::ObjectWrap<Stream>::Unwrap(info[7].As<Napi::Object>()))->m_stream;
-  }
+  CUstream stream = Stream::GetStream(env, info[1]);
 
   Napi::ArrayBuffer buf = info[0].As<Napi::ArrayBuffer>();
 
@@ -99,19 +87,7 @@ Napi::Value Memory::CopyDeviceToHost(const Napi::CallbackInfo &info)
     return env.Null();
   }
 
-  CUstream stream = 0;
-  if (info[1].IsNumber())
-  {
-    if (info[1].As<Napi::Number>().Int32Value() != 0)
-    {
-      Napi::TypeError::New(env, "Invalid stream").ThrowAsJavaScriptException();
-      return env.Null();
-    }
-  }
-  else
-  {
-    stream = (Napi::ObjectWrap<Stream>::Unwrap(info[7].As<Napi::Object>()))->m_stream;
-  }
+  CUstream stream = Stream::GetStream(env, info[1]);
 
   Napi::ArrayBuffer buf = info[0].As<Napi::ArrayBuffer>();
 

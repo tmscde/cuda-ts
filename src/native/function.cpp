@@ -48,19 +48,7 @@ Napi::Value Function::LaunchKernel(const Napi::CallbackInfo &info)
     input[i] = &Napi::ObjectWrap<Memory>::Unwrap(array.Get(i).As<Napi::Object>())->m_ptr;
   }
 
-  CUstream stream = 0;
-  if (info[7].IsNumber())
-  {
-    if (info[7].As<Napi::Number>().Int32Value() != 0)
-    {
-      Napi::TypeError::New(env, "Invalid stream").ThrowAsJavaScriptException();
-      return env.Null();
-    }
-  }
-  else
-  {
-    stream = (Napi::ObjectWrap<Stream>::Unwrap(info[7].As<Napi::Object>()))->m_stream;
-  }
+  CUstream stream = Stream::GetStream(env, info[7]);
 
   // Synchronization is not needed as we're using stream 0
   if (!validate(cuLaunchKernel(m_function,

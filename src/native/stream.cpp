@@ -60,3 +60,20 @@ Napi::Value Stream::Destroy(const Napi::CallbackInfo &info)
 
   return env.Undefined();
 }
+
+CUstream Stream::GetStream(Napi::Env env, Napi::Value value)
+{
+  CUstream stream = 0;
+  if (value.IsNumber())
+  {
+    if (value.As<Napi::Number>().Int32Value() != 0)
+    {
+      Napi::TypeError::New(env, "Invalid stream").ThrowAsJavaScriptException();
+    }
+  }
+  else
+  {
+    stream = (Napi::ObjectWrap<Stream>::Unwrap(value.As<Napi::Object>()))->m_stream;
+  }
+  return stream;
+}

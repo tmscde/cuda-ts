@@ -1,4 +1,4 @@
-export enum CUdevice_attribute_enum {
+export enum CUdevice_attribute {
   CU_DEVICE_ATTRIBUTE_MAX_THREADS_PER_BLOCK = 1 /**< Maximum number of threads per block */,
   CU_DEVICE_ATTRIBUTE_MAX_BLOCK_DIM_X = 2 /**< Maximum block dimension X */,
   CU_DEVICE_ATTRIBUTE_MAX_BLOCK_DIM_Y = 3 /**< Maximum block dimension Y */,
@@ -108,7 +108,14 @@ export enum CUdevice_attribute_enum {
   CU_DEVICE_ATTRIBUTE_MAX,
 }
 
-export enum CUstream_flags_enum {
+export enum CUstream_flags {
   CU_STREAM_DEFAULT = 0x0 /**< Default stream flag */,
   CU_STREAM_NON_BLOCKING = 0x1 /**< Stream does not synchronize with stream 0 (the NULL stream) */,
+}
+
+export enum CUevent_flags {
+  CU_EVENT_DEFAULT = 0x0 /**< Default event flag */,
+  CU_EVENT_BLOCKING_SYNC = 0x1 /**< Event uses blocking synchronization */,
+  CU_EVENT_DISABLE_TIMING = 0x2 /**< Event will not record timing data */,
+  CU_EVENT_INTERPROCESS = 0x4 /**< Event is suitable for interprocess use. CU_EVENT_DISABLE_TIMING must be set */,
 }

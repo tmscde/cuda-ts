@@ -5,6 +5,7 @@
 #include "memory.hpp"
 #include "function.hpp"
 #include "stream.hpp"
+#include "event.hpp"
 #include "compiler.hpp"
 
 Napi::Object InitAll(Napi::Env env, Napi::Object exports)
@@ -17,6 +18,7 @@ Napi::Object InitAll(Napi::Env env, Napi::Object exports)
   Memory::Init(env, exports);
   Function::Init(env, exports);
   Stream::Init(env, exports);
+  Event::Init(env, exports);
   InitCompiler(env, exports);
 
   return exports;

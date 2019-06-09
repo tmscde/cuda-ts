@@ -11,6 +11,7 @@
         "src/native/memory.cpp",
         "src/native/function.cpp",
         "src/native/stream.cpp",
+        "src/native/event.cpp",
         "src/native/compiler.cpp",
       ],
       "include_dirs": [

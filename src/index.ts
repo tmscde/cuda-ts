@@ -1,5 +1,5 @@
 export * from "./enums";
-import { CUdevice_attribute_enum, CUstream_flags_enum } from "./enums";
+import { CUdevice_attribute, CUstream_flags, CUevent_flags } from "./enums";
 
 const cuda = require("bindings")("cuda");
 
@@ -13,7 +13,7 @@ export interface Device {
   getName(): string;
   getTotalMem(): number;
   getComputeCapability(): string;
-  getAttribute(attribute: CUdevice_attribute_enum): number;
+  getAttribute(attribute: CUdevice_attribute): number;
 }
 
 export interface KernelFunc {
@@ -46,6 +46,12 @@ export interface Context {
   allocMem(byteLength: number): GpuBuffer;
   loadModule(filename: string): Module;
   loadModuleData(data: ArrayBuffer): Module;
+  destroy(): void;
+}
+
+export interface Event {
+  record(stream: Stream): void;
+  synchronize(): void;
   destroy(): void;
 }
 
@@ -104,8 +110,12 @@ export function createContext(device: Device): Context {
   return new ContextImpl(device);
 }
 
-export function createStream(flags: CUstream_flags_enum): Stream {
+export function createStream(flags: CUstream_flags): Stream {
   return cuda.createStream(flags);
+}
+
+export function createEvent(flags: CUevent_flags): Event {
+  return cuda.createEvent(flags);
 }
 
 export function compileCuToPtx(cu: string): ArrayBuffer {
