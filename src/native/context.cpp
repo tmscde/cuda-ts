@@ -66,7 +66,7 @@ Napi::Value Context::ModuleLoad(const Napi::CallbackInfo &info)
   if (info.Length() != 1)
   {
     Napi::TypeError::New(env, "Wrong number of arguments").ThrowAsJavaScriptException();
-    return env.Null();
+    return env.Undefined();
   }
 
   Napi::String arg0 = info[0].As<Napi::String>();

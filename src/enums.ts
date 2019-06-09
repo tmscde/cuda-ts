@@ -107,3 +107,8 @@ export enum CUdevice_attribute_enum {
   CU_DEVICE_ATTRIBUTE_DIRECT_MANAGED_MEM_ACCESS_FROM_HOST = 101 /**< The host can directly access managed memory on the device without migration. */,
   CU_DEVICE_ATTRIBUTE_MAX,
 }
+
+export enum CUstream_flags_enum {
+  CU_STREAM_DEFAULT = 0x0 /**< Default stream flag */,
+  CU_STREAM_NON_BLOCKING = 0x1 /**< Stream does not synchronize with stream 0 (the NULL stream) */,
+}

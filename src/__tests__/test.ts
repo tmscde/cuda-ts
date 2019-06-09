@@ -60,13 +60,12 @@ it("should add two buffers", () => {
 
   // Allocate two buffers that will be added together by the kernel on the GPU
   const buf1 = new Float32Array([12, 1032]);
-  const buf2 = new Float32Array([3, 5]);
-
-  // We allocate the first buffer ourselves (we need to free the buffer once we're done)
   const gpuBuf1 = context.allocMem(bufLen);
-
-  // Copy the buffer contents to GPU memory
   gpuBuf1.copyHostToDevice(buf1.buffer);
+
+  const buf2 = new Float32Array([3, 5]);
+  const gpuBuf2 = context.allocMem(bufLen);
+  gpuBuf2.copyHostToDevice(buf2.buffer);
 
   // Allocate GPU memory for the result
   const output = context.allocMem(bufLen);
@@ -75,11 +74,11 @@ it("should add two buffers", () => {
   const func = mod.getFunction("add");
 
   // Launch the kernel on the GPU, buf2 is managed (allocated/deallocated) by cuda-ts
-  context.launchKernel(
-    func, // The kernel function
-    [gpuBuf1, buf2, output], // The data buffers
-    { x: output.length / float32Len, y: 1, z: 1 }, // Dimensions of grid in blocks
+  func.launchKernel(
+    [gpuBuf1, gpuBuf2, output], // The data buffers
+    { x: valueCount, y: 1, z: 1 }, // Dimensions of grid in blocks
     { x: 1, y: 1, z: 1 }, // Dimensions of each thread block
+    0, // Default stream (synchronous)
   );
 
   // Allocate host space for the result

@@ -1,5 +1,5 @@
 export * from "./enums";
-import { CUdevice_attribute_enum } from "./enums";
+import { CUdevice_attribute_enum, CUstream_flags_enum } from "./enums";
 
 const cuda = require("bindings")("cuda");
 
@@ -17,7 +17,16 @@ export interface Device {
 }
 
 export interface KernelFunc {
-  launchKernel(buffers: GpuBuffer[], gridDim: Dimensions, blockDim: Dimensions): void;
+  /**
+   * Invokes the kernel {@param func} on a {@param gridDim.x} x {@param gridDim.y} x {@param gridDim.z} grid of blocks. Each block contains {@param blockDim.x} x {@param blockDim.y} x {@param blockDim.z} threads.
+   * @param {KernelFunc} func The kernel function
+   * @param {GpuBuffer[]} buffers Buffers to be used by the kernel function
+   * @param {Dimensions} gridDim Size of the grid in blocks
+   * @param {Dimensions} blockDim Dimensions of each thread block
+   * @param {Stream | 0} stream Stream to perform the launch in, 0 is default stream which is synchronous
+   */
+
+  launchKernel(buffers: GpuBuffer[], gridDim: Dimensions, blockDim: Dimensions, stream: Stream | 0): void;
 }
 
 export interface Module {
@@ -26,35 +35,29 @@ export interface Module {
 }
 
 export interface GpuBuffer {
-  readonly length: number;
   copyDeviceToHost(buffer: ArrayBuffer): void;
   copyHostToDevice(buffer: ArrayBuffer): void;
   free(): void;
 }
 
 export interface Context {
+  readonly device: Device;
+
   allocMem(byteLength: number): GpuBuffer;
   loadModule(filename: string): Module;
   loadModuleData(data: ArrayBuffer): Module;
-  /**
-   * Invokes the kernel {@param func} on a {@param gridDim.x} x {@param gridDim.y} x {@param gridDim.z} grid of blocks. Each block contains {@param blockDim.x} x {@param blockDim.y} x {@param blockDim.z} threads.
-   * @param {KernelFunc} func The kernel function
-   * @param {(number | Float32Array | GpuBuffer)[]} input Buffers to be read by the kernel function
-   * @param {(number | GpuBuffer)[]} Buffers to be written to by the kernel function
-   * @param {Dimensions} gridDim Size of the grid in blocks
-   * @param {Dimensions} blockDim Dimensions of each thread block
-   * @return {Float32Array[]} The contents of the {@param input} buffers in host memory
-   */
-  launchKernel(func: KernelFunc, data: (Float32Array | GpuBuffer)[], gridDim: Dimensions, blockDim: Dimensions): void;
+  destroy(): void;
+}
+
+export interface Stream {
   destroy(): void;
 }
 
 class FunctionImpl implements KernelFunc {
   constructor(private func: any) {}
 
-  launchKernel(buffers: GpuBuffer[], gridDim: Dimensions, blockDim: Dimensions): void {
-    const gpuMem = buffers.map(x => (x as GpuBufferImpl).mem);
-    return this.func.launchKernel(gpuMem, gridDim.x, gridDim.y, gridDim.z, blockDim.x, blockDim.y, blockDim.z);
+  launchKernel(buffers: GpuBuffer[], gridDim: Dimensions, blockDim: Dimensions, stream: Stream | 0): void {
+    return this.func.launchKernel(buffers, gridDim.x, gridDim.y, gridDim.z, blockDim.x, blockDim.y, blockDim.z, stream);
   }
 }
 
@@ -70,35 +73,11 @@ class ModuleImpl {
   }
 }
 
-class GpuBufferImpl implements GpuBuffer {
-  constructor(public mem: any, public readonly length: number) {}
-  copyDeviceToHost(buffer: ArrayBuffer): void {
-    this.mem.copyDeviceToHost(buffer);
-  }
-  copyHostToDevice(buffer: ArrayBuffer): void {
-    this.mem.copyHostToDevice(buffer);
-  }
-  free() {
-    if (this.mem !== null) {
-      this.mem.free();
-      this.mem = null;
-    }
-  }
-}
-
-function isNumber(val: any): val is number {
-  return typeof val === "number";
-}
-
-function isFloat32Array(val: any): val is Float32Array {
-  return val.constructor === Float32Array;
-}
-
 class ContextImpl implements Context {
-  constructor(private device: Device, private context: any = cuda.createContext(device)) {}
+  constructor(public device: Device, private context: any = cuda.createContext(device)) {}
 
   allocMem(byteLength: number): GpuBuffer {
-    return new GpuBufferImpl(this.context.allocMem(byteLength), byteLength);
+    return this.context.allocMem(byteLength);
   }
 
   loadModule(filename: string) {
@@ -107,25 +86,6 @@ class ContextImpl implements Context {
 
   loadModuleData(data: ArrayBuffer) {
     return new ModuleImpl(this.context.moduleLoadData(data));
-  }
-
-  launchKernel(func: KernelFunc, data: (Float32Array | GpuBuffer)[], gridDim: Dimensions, blockDim: Dimensions): void {
-    const buffersToFree: GpuBuffer[] = [];
-    const buffers = data.map(buffer => {
-      if (!isFloat32Array(buffer)) {
-        return buffer;
-      }
-      const gpuBuffer = this.allocMem(buffer.byteLength);
-      gpuBuffer.copyHostToDevice(buffer.buffer);
-      buffersToFree.push(gpuBuffer);
-      return gpuBuffer;
-    });
-
-    func.launchKernel(buffers, gridDim, blockDim);
-
-    while (buffersToFree.length > 0) {
-      buffersToFree.pop()!.free();
-    }
   }
 
   destroy() {
@@ -142,6 +102,10 @@ export function getDevices(): Device[] {
 
 export function createContext(device: Device): Context {
   return new ContextImpl(device);
+}
+
+export function createStream(flags: CUstream_flags_enum): Stream {
+  return cuda.createStream(flags);
 }
 
 export function compileCuToPtx(cu: string): ArrayBuffer {

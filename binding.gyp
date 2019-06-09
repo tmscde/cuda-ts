@@ -10,6 +10,7 @@
         "src/native/module.cpp",
         "src/native/memory.cpp",
         "src/native/function.cpp",
+        "src/native/stream.cpp",
         "src/native/compiler.cpp",
       ],
       "include_dirs": [
