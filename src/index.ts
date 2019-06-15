@@ -118,6 +118,10 @@ export function createEvent(flags: CUevent_flags): Event {
   return cuda.createEvent(flags);
 }
 
-export function compileCuToPtx(cu: string): ArrayBuffer {
-  return cuda.compileCuToPtx(cu);
+export function compileCuToPtx(cu: string, options?: string[]): ArrayBuffer {
+  return cuda.compileCuToPtx(cu, options);
+}
+
+export function getSizeofCurandState() {
+  return cuda.getSizeofCurandState();
 }

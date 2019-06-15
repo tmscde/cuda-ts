@@ -29,7 +29,7 @@ Napi::Value CompileCuToPtx(const Napi::CallbackInfo &info)
 {
   Napi::Env env = info.Env();
 
-  if (info.Length() != 1)
+  if (info.Length() != 2)
   {
     Napi::TypeError::New(env, "Wrong number of arguments").ThrowAsJavaScriptException();
     return env.Undefined();
@@ -43,10 +43,26 @@ Napi::Value CompileCuToPtx(const Napi::CallbackInfo &info)
     return env.Undefined();
   }
 
-  int numCompileOptions = 0;
-  char *compileParams[1] = {NULL};
+  std::vector<std::string> options;
+  int numOptions = 0;
+  if (!info[1].IsUndefined())
+  {
+    Napi::Array arr = info[1].As<Napi::Array>();
+    numOptions = arr.Length();
+    for (int i = 0; i < numOptions; i++)
+    {
+      options.push_back(arr.Get(i).As<Napi::String>());
+    }
+  }
 
-  nvrtcResult compilerRes = nvrtcCompileProgram(prog, numCompileOptions, compileParams);
+  std::vector<const char *> optionsPtrs(numOptions);
+  for (int i = 0; i < numOptions; i++)
+  {
+    optionsPtrs[i] = options[i].c_str();
+  }
+
+  nvrtcResult compilerRes = nvrtcCompileProgram(prog, numOptions, optionsPtrs.data());
+
   if (compilerRes != NVRTC_SUCCESS)
   {
     size_t logSize;
