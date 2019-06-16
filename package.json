@@ -1,6 +1,6 @@
 {
   "name": "cuda-ts",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "description": "NVIDIA CUDA™ bindings exposed in TypeScript",
   "author": "Tomas Kjellstrand",
   "license": "MIT",
