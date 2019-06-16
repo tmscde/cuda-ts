@@ -26,7 +26,7 @@ export interface KernelFunc {
    * @param {Stream | 0} stream Stream to perform the launch in, 0 is default stream which is synchronous
    */
 
-  launchKernel(buffers: GpuBuffer[], gridDim: Dimensions, blockDim: Dimensions, stream: Stream | 0): void;
+  launchKernel(params: (GpuBuffer | number)[], gridDim: Dimensions, blockDim: Dimensions, stream: Stream | 0): void;
 }
 
 export interface Module {
@@ -62,8 +62,8 @@ export interface Stream {
 class FunctionImpl implements KernelFunc {
   constructor(private func: any) {}
 
-  launchKernel(buffers: GpuBuffer[], gridDim: Dimensions, blockDim: Dimensions, stream: Stream | 0): void {
-    return this.func.launchKernel(buffers, gridDim.x, gridDim.y, gridDim.z, blockDim.x, blockDim.y, blockDim.z, stream);
+  launchKernel(params: (GpuBuffer | number)[], gridDim: Dimensions, blockDim: Dimensions, stream: Stream | 0): void {
+    return this.func.launchKernel(params, gridDim.x, gridDim.y, gridDim.z, blockDim.x, blockDim.y, blockDim.z, stream);
   }
 }
 

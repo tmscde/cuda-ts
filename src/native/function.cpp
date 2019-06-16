@@ -42,10 +42,22 @@ Napi::Value Function::LaunchKernel(const Napi::CallbackInfo &info)
 
   Napi::Array array = info[0].As<Napi::Array>();
 
-  std::vector<CUdeviceptr *> input(array.Length());
+  std::vector<float> numbers;
+  std::vector<void *> input(array.Length());
   for (int i = 0; i < (int)array.Length(); i++)
   {
-    input[i] = &Napi::ObjectWrap<Memory>::Unwrap(array.Get(i).As<Napi::Object>())->m_ptr;
+    Napi::Value value = array.Get(i);
+
+    if (value.IsObject())
+    {
+      input[i] = &Napi::ObjectWrap<Memory>::Unwrap(value.As<Napi::Object>())->m_ptr;
+    }
+    else if (value.IsNumber())
+    {
+      // Put the number on the array
+      numbers.push_back(value.As<Napi::Number>().FloatValue());
+      input[i] = numbers.data() + (numbers.size() - 1) * 4;
+    }
   }
 
   CUstream stream = Stream::GetStream(env, info[7]);
