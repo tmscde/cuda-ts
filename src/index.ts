@@ -56,6 +56,7 @@ export interface Event {
 }
 
 export interface Stream {
+  waitForEvent(event: Event): void;
   destroy(): void;
 }
 

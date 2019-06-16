@@ -18,6 +18,7 @@ public:
 private:
   static Napi::FunctionReference constructor;
 
+  Napi::Value WaitForEvent(const Napi::CallbackInfo &info);
   Napi::Value Destroy(const Napi::CallbackInfo &info);
 };
 

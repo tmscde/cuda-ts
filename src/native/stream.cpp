@@ -1,5 +1,6 @@
 #include "stream.hpp"
 #include "shared.hpp"
+#include "event.hpp"
 #include <string>
 
 Napi::FunctionReference Stream::constructor;
@@ -9,6 +10,7 @@ Napi::Object Stream::Init(Napi::Env env, Napi::Object exports)
   Napi::HandleScope scope(env);
 
   Napi::Function func = DefineClass(env, "Stream", {
+                                                       InstanceMethod("waitForEvent", &Stream::WaitForEvent),
                                                        InstanceMethod("destroy", &Stream::Destroy),
                                                    });
 
@@ -54,6 +56,26 @@ Napi::Value Stream::Destroy(const Napi::CallbackInfo &info)
   Napi::Env env = info.Env();
 
   if (!validate(cuStreamDestroy(m_stream), env))
+  {
+    return env.Undefined();
+  }
+
+  return env.Undefined();
+}
+
+Napi::Value Stream::WaitForEvent(const Napi::CallbackInfo &info)
+{
+  Napi::Env env = info.Env();
+
+  if (info.Length() != 1)
+  {
+    Napi::TypeError::New(env, "Wrong number of arguments").ThrowAsJavaScriptException();
+    return env.Undefined();
+  }
+
+  CUevent event = (Napi::ObjectWrap<Event>::Unwrap(info[0].As<Napi::Object>()))->m_event;
+
+  if (!validate(cuStreamWaitEvent(m_stream, event, 0), env))
   {
     return env.Undefined();
   }
