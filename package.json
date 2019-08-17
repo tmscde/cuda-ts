@@ -32,7 +32,7 @@
   },
   "scripts": {
     "build": "tsc",
-    "test": "yarn build && nvcc -cubin -o dist/__tests__/test.cubin src/__tests__/test.cu && jest",
+    "test": "yarn build && nvcc -arch=compute_30 -code=sm_30 -cubin -o dist/__tests__/test.cubin src/__tests__/test.cu && jest",
     "build-watch": "tsc --watch"
   },
   "dependencies": {
@@ -43,6 +43,7 @@
     "@types/jest": "^24.0.13",
     "@types/node": "^12.0.2",
     "jest": "^24.8.0",
+    "lodash": "^4.17.15",
     "prettier": "^1.17.0",
     "typescript": "^3.4.5",
     "watch": "^1.0.2"
